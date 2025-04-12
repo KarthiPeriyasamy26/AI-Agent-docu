@@ -29,8 +29,8 @@ except Exception as e:
 
 # --- Page Configuration ---
 st.set_page_config(page_title="AI Document Chat (Google LLM + Rerank)", layout="wide")
-st.title("📖 AI-Powered Document Chatbot (Google LLM + Sentence Rerank)")
-st.header("💡 Upload PDFs, DOCX, TXT, or CSV & Ask Questions", divider="rainbow")
+st.title(" AI-Powered Document Chatbot (Google LLM + Sentence Rerank)")
+st.header(" Upload PDFs, DOCX, TXT, or CSV & Ask Questions", divider="rainbow")
 
 # --- Caching for Text Extraction ---
 @st.cache_data
@@ -72,7 +72,7 @@ def split_text_into_chunks(text: str, chunk_size: int = 2000, chunk_overlap: int
     return splitter.split_text(text)
 
 # --- Vector Storage (ChromaDB) ---
-@st.cache_resource(show_spinner="⚙️ Creating Vector Store...")
+@st.cache_resource(show_spinner=" Creating Vector Store...")
 def create_vector_store(text_chunks: List[str], file_names: List[str]) -> Optional[Chroma]:
     """Stores text chunks in ChromaDB with metadata (document source)."""
     if not GOOGLE_API_KEY:
@@ -103,7 +103,7 @@ def create_vector_store(text_chunks: List[str], file_names: List[str]) -> Option
         return None
 
 # --- Load Google LLM ---
-@st.cache_resource(show_spinner="🤖 Loading Language Model...")
+@st.cache_resource(show_spinner=" Loading Language Model...")
 def load_google_llm():
     """Loads the Google Gemini Pro model."""
     try:
@@ -114,7 +114,7 @@ def load_google_llm():
         return None
 
 # --- Load Sentence Transformer Model for Reranking ---
-@st.cache_resource(show_spinner="🧠 Loading Reranking Model...")
+@st.cache_resource(show_spinner=" Loading Reranking Model...")
 def load_reranking_model():
     """Loads the all-mpnet-base-v2 Sentence Transformer model."""
     try:
@@ -205,20 +205,20 @@ def main():
     """Main function to run the Streamlit application."""
 
     # --- Sidebar ---
-    st.sidebar.title("⚙️ Configuration")
+    st.sidebar.title(" Configuration")
     st.sidebar.markdown("Using **Google Gemini Pro** for the Language Model.")
     st.sidebar.markdown("Using **Sentence Transformers** for reranking.")
 
-    st.sidebar.title("📂 Upload & Process")
+    st.sidebar.title(" Upload & Process")
     uploaded_files = st.sidebar.file_uploader(
         "Upload Documents (PDF, DOCX, TXT, CSV)", accept_multiple_files=True, type=["pdf", "docx", "txt", "csv"]
     )
 
-    if st.sidebar.button("📌 Process Uploaded Files", key="process_button"):
+    if st.sidebar.button(" Process Uploaded Files", key="process_button"):
         if uploaded_files:
             all_texts = []
             file_names = []
-            with st.spinner("🔄 Extracting text from files..."):
+            with st.spinner("Extracting text from files..."):
                 for file in uploaded_files:
                     extracted_text = extract_text_from_file(file)
                     if extracted_text:
@@ -232,38 +232,38 @@ def main():
             else:
                 full_text = "\n\n--- End of Document ---\n\n".join(all_texts)
 
-                with st.spinner("쪼개기... Splitting text into chunks..."):
+                with st.spinner("... Splitting text into chunks..."):
                     text_chunks = split_text_into_chunks(full_text)
 
                 vector_db = create_vector_store(text_chunks, list(set(file_names)))
 
                 if vector_db:
                     st.session_state["vector_db"] = vector_db
-                    st.success(f"✅ Processed {len(uploaded_files)} files successfully!")
+                    st.success(f" Processed {len(uploaded_files)} files successfully!")
                 else:
-                    st.error("❌ Failed to create vector store. Check logs.")
+                    st.error(" Failed to create vector store. Check logs.")
         else:
-            st.warning("⚠️ Please upload at least one file.")
+            st.warning(" Please upload at least one file.")
 
-    st.sidebar.info("ℹ️ After processing, ask your questions below.")
+    st.sidebar.info(" After processing, ask your questions below.")
 
     # --- Main Chat Area ---
-    st.header("💬 Ask Questions About Your Documents")
+    st.header(" Ask Questions About Your Documents")
 
-    user_question = st.text_input("🔍 Your question:")
+    user_question = st.text_input(" Your question:")
 
     llm = load_google_llm()
     reranker_model = load_reranking_model()
 
     if user_question:
         if "vector_db" not in st.session_state or st.session_state["vector_db"] is None:
-            st.error("⚠️ Please upload and process files before asking questions.")
+            st.error(" Please upload and process files before asking questions.")
         elif llm is None:
-            st.error("⚠️ Language model could not be loaded. Check the sidebar for errors.")
+            st.error(" Language model could not be loaded. Check the sidebar for errors.")
         elif reranker_model is None:
-            st.error("⚠️ Reranking model could not be loaded. Check the sidebar for errors.")
+            st.error("Reranking model could not be loaded. Check the sidebar for errors.")
         else:
-            with st.spinner("🧠 Thinking... Searching documents and generating response..."):
+            with st.spinner(" Thinking... Searching documents and generating response..."):
                 vector_db = st.session_state["vector_db"]
                 result = process_user_query(user_question, vector_db, llm, reranker_model)
 
